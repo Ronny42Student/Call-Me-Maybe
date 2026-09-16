@@ -1,3 +1,5 @@
+"""Constrained JSON generation loop for function calling."""
+
 from typing import Any
 import numpy as np
 
@@ -24,6 +26,21 @@ __all__ = [
 
 
 def generate_constrained_json(prompt_text: str, cache: Any) -> str:
+    """Generate a schema-compliant JSON function call via constrained decoding.
+
+    Drives the token-by-token generation loop: resolves the function
+    name, injects the parameters bridge, then masks the model's
+    logits at each step so only tokens compatible with valid JSON and
+    the target schema can be selected, until the call is complete or
+    the token budget is exhausted.
+
+    Args:
+        prompt_text: The user's natural-language request.
+        cache: Precomputed mask/model data (see ``MaskCache``).
+
+    Returns:
+        The generated JSON string representing the function call.
+    """
     prompt = build_full_prompt(prompt_text, cache)
 
     input_ids = cache.model.encode(prompt).tolist()[0]

@@ -1,3 +1,5 @@
+"""Entry point for the Call Me Maybe function calling tool."""
+
 import argparse
 import sys
 from datetime import datetime
@@ -11,6 +13,11 @@ from src.pipeline import print_elapsed_time, run_all_prompts
 
 
 def parse_arguments() -> argparse.Namespace:
+    """Parse command-line arguments for the function calling tool.
+
+    Returns:
+        The parsed arguments namespace.
+    """
     parser = argparse.ArgumentParser(
         prog="CallMeMaybe",
         description="Call Me Maybe: LLM Function Calling Tool",
@@ -54,6 +61,12 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Run the full function calling pipeline end to end.
+
+    Loads the function definitions and prompts, builds the constrained
+    decoding cache, resolves every prompt to a function call, and
+    writes the results to the output file.
+    """
     args = parse_arguments()
 
     raw_functions: List[Dict[str, Any]] = load_json_file(

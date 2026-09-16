@@ -1,3 +1,5 @@
+"""Vocabulary masking logic applied at each generation step."""
+
 from typing import Any
 import numpy as np
 import re
@@ -8,6 +10,28 @@ from src.parser.name_resolution import get_allowed_chars
 def compute_generation_mask(
         current_str: str, cache: Any,
         vocab_size: int) -> tuple[np.ndarray, str | None]:
+    """Compute the token mask (or forced completion) for the next step.
+
+    While the function name is being resolved, restricts tokens to
+    those consistent with the allowed name/structural phrases.
+    Afterwards, inspects the partial JSON to determine whether
+    generation is inside a key, a string value, or a numeric value,
+    and builds the matching vocabulary mask, or forces the JSON to
+    close once all parameters are present.
+
+    Args:
+        current_str: The JSON generated so far.
+        cache: Object exposing the precomputed masks and function
+            metadata (``allowed_fn``, ``param_types``, ``func_params``,
+            ``p4_mask``, ``p4_numbers_only``, ``p4_no_comma``,
+            ``clean_dict_items``, ``mini_dict``).
+        vocab_size: Total number of tokens in the vocabulary.
+
+    Returns:
+        A tuple of (boolean mask over the vocabulary, forced closing
+        string). The forced string is not None when generation should
+        skip masking and directly append a fixed JSON closing.
+    """
     rules = get_allowed_chars(current_str, cache.allowed_fn)
     mask = np.zeros(vocab_size, dtype=bool)
 

@@ -1,3 +1,5 @@
+"""Build vocabulary masks and function metadata for constrained decoding."""
+
 import sys
 from typing import Any, Dict, List, Tuple
 
@@ -15,6 +17,18 @@ from src.vocab import (
 def extract_function_metadata(
     raw_functions: List[Dict[str, Any]],
 ) -> Tuple[List[str], Dict[str, int], Dict[str, Dict[str, Any]]]:
+    """Validate function definitions and extract generation metadata.
+
+    Each raw definition is validated against ``FunctionDef``. On
+    failure, an error is printed to stderr and the program exits.
+
+    Args:
+        raw_functions: List of raw function definitions.
+
+    Returns:
+        A tuple of (allowed function names, parameter counts per
+        function, parameter types per function).
+    """
     allowed_fn_names: List[str] = []
     func_params: Dict[str, int] = {}
     param_types: Dict[str, Dict[str, Any]] = {}
@@ -52,6 +66,16 @@ def extract_function_metadata(
 def build_number_mask(
     vocab_size: int, clean_dict_items: List[Tuple[int, str]]
 ) -> np.ndarray[Any, Any]:
+    """Build a boolean mask selecting tokens usable inside a number value.
+
+    Args:
+        vocab_size: Total number of tokens in the vocabulary.
+        clean_dict_items: (id, token) pairs to evaluate.
+
+    Returns:
+        Boolean array of shape ``(vocab_size,)``, True for tokens made
+        only of digits/numeric punctuation, or equal to "null".
+    """
     p4_numbers_only = np.zeros(vocab_size, dtype=bool)
     allowed_math_chars = set("0123456789.-, }")
 
@@ -67,6 +91,17 @@ def build_masks(
     valid_ids: List[int],
     clean_dict_items: List[Tuple[int, str]],
 ) -> Tuple[np.ndarray[Any, Any], np.ndarray[Any, Any], np.ndarray[Any, Any]]:
+    """Build the base vocabulary masks used during constrained decoding.
+
+    Args:
+        vocab_size: Total number of tokens in the vocabulary.
+        valid_ids: Token ids considered printable/valid.
+        clean_dict_items: (id, token) pairs to evaluate.
+
+    Returns:
+        A tuple of (mask of all valid tokens, mask of numeric-only
+        tokens, mask of valid tokens excluding any containing a comma).
+    """
     p4_mask = np.zeros(vocab_size, dtype=bool)
     p4_mask[valid_ids] = True
 
@@ -83,6 +118,16 @@ def build_masks(
 def build_mini_dict(
     allowed_fn_names: List[str], clean_dict_items: List[Tuple[int, str]]
 ) -> List[Tuple[int, str]]:
+    """Restrict tokens to those usable while resolving the function name.
+
+    Args:
+        allowed_fn_names: Names of the functions the model may call.
+        clean_dict_items: (id, token) pairs to evaluate.
+
+    Returns:
+        The subset of (id, token) pairs where the token is a prefix of
+        one of the allowed function names or a JSON structural phrase.
+    """
     target_phrases = allowed_fn_names + [
         '{"name":"',
         '","parameters":{',
@@ -99,6 +144,15 @@ def build_mini_dict(
 def build_mask_cache(
     model: Any, raw_functions: List[Dict[str, Any]]
 ) -> MaskCache:
+    """Assemble all precomputed data needed for constrained decoding.
+
+    Args:
+        model: LLM wrapper used for encoding and inference.
+        raw_functions: List of raw function definitions.
+
+    Returns:
+        A fully populated ``MaskCache``.
+    """
     vocab_dict = build_vocab_dict(model)
     valid_ids, clean_dict_items = filter_printable_tokens(vocab_dict)
 
