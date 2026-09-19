@@ -116,11 +116,11 @@ def process_prompt(
             file=sys.stderr,
         )
         print(e.errors()[0])
-        sys.exit(0)
+        sys.exit(1)
 
     except Exception as e:
         print(f"An unexpected error occured.\nDetails: {e}", file=sys.stderr)
-        sys.exit(0)
+        sys.exit(1)
 
 
 def run_all_prompts(
