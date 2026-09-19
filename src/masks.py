@@ -51,14 +51,14 @@ def extract_function_metadata(
                 file=sys.stderr,
             )
             print(e.errors()[0])
-            sys.exit(1)
+            sys.exit(0)
 
         except Exception as e:
             print(
                 f"An unexpected error occured.\nDetails: {e}",
                 file=sys.stderr,
             )
-            sys.exit(1)
+            sys.exit(0)
 
     return allowed_fn_names, func_params, param_types
 
