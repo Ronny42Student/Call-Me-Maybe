@@ -74,6 +74,15 @@ def main() -> None:
     )
     raw_prompts: List[Dict[str, Any]] = load_json_file(args.input)
 
+    if not isinstance(raw_functions, list) or len(raw_functions) == 0:
+        print(
+            f"No function definitions found in "
+            f"'{args.functions_definition}'. At least one function "
+            "must be defined to make function calls.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     model = Small_LLM_Model(model_name=args.model)
 
     start_time = datetime.now()
