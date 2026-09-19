@@ -60,22 +60,32 @@ def write_output_file(
         SystemExit: If the path is invalid or the file cannot be written.
     """
     output_file = pathlib.Path(output_path)
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    output_file.touch(exist_ok=True)
-
-    if not output_file.is_file():
-        print(
-            f"This file '{output_path}' is not found, or it is a directory.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
 
     try:
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        output_file.touch(exist_ok=True)
+
+        if not output_file.is_file():
+            print(
+                f"This file '{output_path}' is not found, or it is a "
+                "directory.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
         with open(output_path, "w") as file:
             json.dump(results, file, indent=4)
 
     except PermissionError:
         print(f"Permission denied in this file {output_path}", file=sys.stderr)
+        sys.exit(1)
+
+    except OSError as e:
+        print(
+            f"Could not create or write to '{output_path}'.\n"
+            f"Details: {e}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     except Exception as e:

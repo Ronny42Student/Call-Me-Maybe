@@ -83,11 +83,26 @@ def main() -> None:
         )
         sys.exit(1)
 
-    model = Small_LLM_Model(model_name=args.model)
+    if not isinstance(raw_prompts, list):
+        print(
+            f"'{args.input}' must contain a JSON array of prompts.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
-    start_time = datetime.now()
+    try:
+        model = Small_LLM_Model(model_name=args.model)
 
-    cache = build_mask_cache(model, raw_functions)
+        start_time = datetime.now()
+
+        cache = build_mask_cache(model, raw_functions)
+
+    except Exception as e:
+        print(
+            f"Failed to load model '{args.model}'.\nDetails: {e}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     final_results_list = run_all_prompts(raw_prompts, cache, raw_functions)
 

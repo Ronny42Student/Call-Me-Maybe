@@ -84,9 +84,9 @@ def process_prompt(
     Returns:
         The validated function call result as a dict.
     """
-    raw_json_string = generate_constrained_json(prompt_text, cache)
-
     try:
+        raw_json_string = generate_constrained_json(prompt_text, cache)
+
         extracted_dict = json.loads(raw_json_string)
 
         fn_name = extracted_dict.get("name")
