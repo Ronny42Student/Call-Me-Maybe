@@ -130,18 +130,39 @@ def run_all_prompts(
 ) -> List[Dict[str, Any]]:
     """Process every prompt and collect the resulting function calls.
 
+    Entries that are not JSON objects, or that have no non-empty
+    string "prompt" key, are skipped with a warning on stderr instead
+    of crashing the whole run.
+
     Args:
-        raw_prompts: List of dicts each containing a "prompt" key.
+        raw_prompts: List of dicts, each expected to contain a
+            "prompt" key.
         cache: Precomputed mask/model data used for generation.
         raw_functions: List of raw function definitions.
 
     Returns:
-        List of validated function call results, one per prompt.
+        List of validated function call results, one per valid prompt.
     """
     final_results_list: List[Dict[str, Any]] = []
 
-    for prompt in raw_prompts:
-        prompt_text: str = prompt["prompt"]
+    for index, entry in enumerate(raw_prompts):
+        if not isinstance(entry, dict):
+            print(
+                f"Skipping entry {index}: expected a JSON object.",
+                file=sys.stderr,
+            )
+            continue
+
+        prompt_text = entry.get("prompt")
+
+        if not isinstance(prompt_text, str) or not prompt_text.strip():
+            print(
+                f"Skipping entry {index}: missing or invalid "
+                "'prompt' key.",
+                file=sys.stderr,
+            )
+            continue
+
         print(f"\nPrompt: {prompt_text}")
 
         result = process_prompt(prompt_text, cache, raw_functions)
