@@ -27,7 +27,7 @@ run:
 debug:
 	uv run python -m pdb -m src \
 	--functions_definition data/input/functions_definition.json \
-	 data/input/function_calling_tests.json \
+	--input data/input/function_calling_tests.json \
 	--output data/output/function_calling_results.json
 
 clean:
